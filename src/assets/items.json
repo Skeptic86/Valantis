@@ -1,0 +1,37 @@
+[
+    {
+        "id": 0,
+        "name": "Сумка",
+        "price": 803,
+        "brand": "Гучи",
+        "img_src": "https://dodopizza.azureedge.net/static/Img/Products/f035c7f46c0844069722f2bb3ee9f113_584x584.jpeg"
+    },
+    {
+        "id": 1,
+        "name": "Кроссовки",
+        "price": 150,
+        "brand": "Демикс",
+        "img_src": "https://dodopizza.azureedge.net/static/Img/Products/f035c7f46c0844069722f2bb3ee9f113_584x584.jpeg"
+    },
+    {
+        "id": 2,
+        "name": "Худи",
+        "price": 499,
+        "brand": "Стоун-Айленд",
+        "img_src": "https://dodopizza.azureedge.net/static/Img/Products/f035c7f46c0844069722f2bb3ee9f113_584x584.jpeg"
+    },
+    {
+        "id": 3,
+        "name": "Сумка",
+        "price": 231,
+        "brand": "Nike",
+        "img_src": "https://dodopizza.azureedge.net/static/Img/Products/f035c7f46c0844069722f2bb3ee9f113_584x584.jpeg"
+    },
+    {
+        "id": 4,
+        "name": "Кофта",
+        "price": 789,
+        "brand": "Camel",
+        "img_src": "https://dodopizza.azureedge.net/static/Img/Products/f035c7f46c0844069722f2bb3ee9f113_584x584.jpeg"
+    }
+]

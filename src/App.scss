@@ -1,0 +1,12 @@
+@import './styles/variables';
+// @import './styles/normalize';
+
+body {
+    background-color: $background;
+}
+
+.container {
+    width: $container-width;
+    margin: 0 auto;
+    min-height: calc(100vh - 10px);
+}

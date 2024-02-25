@@ -1,0 +1,37 @@
+.item {
+    width: 200px;
+    text-align: center;
+    margin-bottom: 70px;
+    transition: all 0.2s ease-in-out;
+
+    &:hover {
+        scale: (1.03);
+    }
+
+    &_wrapper {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        flex-direction: column;
+    }
+
+    &_image {
+        width: 150px;
+        height: 150px;
+    }
+
+    &_title {
+        font-size: 20px;
+        font-weight: 500;
+        margin-bottom: 8px;
+    }
+
+    &_price,
+    &_brand {
+        margin-top: 5px;
+        font-size: 16px;
+        font-weight: 400;
+        line-height: 0px;
+        letter-spacing: 0.015em;
+    }
+}
