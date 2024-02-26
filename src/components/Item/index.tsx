@@ -2,14 +2,14 @@ import React from 'react';
 import styles from './Item.module.scss';
 import logo from '../../assets/product.png';
 
-export type TItemProps = {
+export interface IItemProps {
     id: number;
     product: string;
     price: number;
     brand: string;
-};
+}
 
-const Item: React.FC<TItemProps> = ({ id, product, price, brand }) => {
+const Item: React.FC<IItemProps> = ({ id, product, price, brand }) => {
     return (
         <div className={styles.item_wrapper}>
             <div className={styles.item}>

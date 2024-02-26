@@ -3,10 +3,17 @@
     justify-content: center;
     align-items: center;
     gap: 20px;
-    & * {
-        cursor: pointer;
-        &:hover {
-            color: red;
-        }
+}
+
+.enabled {
+    cursor: pointer;
+    &:hover {
+        color: red;
     }
+}
+
+.disabled {
+    color: black;
+    opacity: 0.7;
+    cursor: not-allowed;
 }

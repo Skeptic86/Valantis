@@ -12,6 +12,17 @@
     }
 }
 
+.pagination {
+    padding-bottom: 15px;
+}
+
+.filter_wrapper {
+    display: flex;
+    justify-content: space-between;
+    align-items: end;
+    padding: 0 20px;
+}
+
 .header {
     color: rgb(243, 144, 165);
     font-size: 46px;
@@ -33,6 +44,7 @@
     background-color: white;
 
     &_items {
+        margin-top: 15px;
         background-color: #fff;
         border-radius: 10px;
         display: flex;
@@ -42,22 +54,5 @@
         flex-wrap: wrap;
         height: 100%;
         width: 100%;
-
-        // display: grid;
-        // grid-template-columns: repeat(5, 1fr);
-        // grid-template-rows: repeat(1, 1fr);
-        // grid-column-gap: 11px;
-
-        // @media (max-width: 1400px) {
-        //     grid-template-columns: repeat(3, 1fr);
-        // }
-
-        // @media (max-width: 1060px) {
-        //     grid-template-columns: repeat(2, 1fr);
-        // }
-
-        // @media (max-width: 730px) {
-        //     grid-template-columns: repeat(1, 1fr);
-        // }
     }
 }

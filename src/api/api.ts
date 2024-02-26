@@ -8,7 +8,6 @@ const getHeaders = () => {
     let month = date.getMonth() + 1;
     let year = date.getFullYear();
     let currentDate = `${year}0${month}${day}`;
-    console.log(currentDate);
     return {
         'X-Auth': md5(`Valantis_${currentDate}`),
     };
