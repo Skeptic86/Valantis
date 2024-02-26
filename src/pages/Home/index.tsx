@@ -1,15 +1,14 @@
-import React, { useState } from 'react';
+import { useState, useEffect, FC } from 'react';
 import styles from './Home.module.scss';
-import axios from 'axios';
-import { md5 } from 'js-md5';
 
-import items from '../../assets/items.json';
 import Item from '../../components/Item';
-import { TItemProps } from '../../components/Item';
+import { itemsDataAPI } from '../../api/api';
+import Loader from '../../components/Loader';
+import Pagination from '../../components/Pagination';
 
 interface IProduct {
     id: number;
-    name: string;
+    product: string;
     price: number;
     brand: string;
 }
@@ -18,56 +17,82 @@ interface IReqData {
     result: string[] | IProduct[];
 }
 
-const Home: React.FC = () => {
-    const [currentItems, setCurrentItems] = useState<IProduct[]>([]);
+export interface IBodyData {
+    action: 'get_ids' | 'filter' | 'get_fields' | 'get_items' | 'test';
+    params: {
+        offset?: number;
+        limit?: number;
+        ids?: string[];
+        field?: string;
+        price?: number;
+        brand?: string;
+    };
+}
 
-    const getHeaders = () => {
-        const date = new Date();
-        let day = date.getDate();
-        let month = date.getMonth() + 1;
-        let year = date.getFullYear();
-        let currentDate = `${year}0${month}${day}`;
-        return {
-            'X-Auth': md5(`Valantis_${currentDate}`),
-        };
+const Home: FC = () => {
+    const [currentItems, setCurrentItems] = useState<IProduct[]>([]);
+    const [isLoading, setIsLoading] = useState<boolean>(true);
+    const [offset, setOffset] = useState<number>(0);
+
+    const nextPage = () => {
+        console.log('next working');
+        setOffset((prev) => prev + 50);
     };
 
-    const reqBody = {
+    const prevPage = () => {
+        console.log('prev working');
+        if (offset !== 0) {
+            setOffset((prev) => prev - 50);
+        }
+    };
+
+    const reqBody: IBodyData = {
         action: 'get_ids',
-        params: { offset: 0, limit: 50 },
+        params: { offset, limit: 50 },
     };
 
     const testReq = async () => {
-        const { data } = await axios.post<IReqData>('http://api.valantis.store:40000/', reqBody, {
-            headers: getHeaders(),
-        });
+        try {
+            const { data } = await itemsDataAPI.getItems(reqBody);
 
-        const reqBodyItems = {
-            action: 'get_items',
-            params: { ids: data.result },
-        };
+            const reqBodyItems: IBodyData = {
+                action: 'get_items',
+                params: { ids: data.result },
+            };
 
-        const response = await axios.post<IReqData>(
-            'http://api.valantis.store:40000/',
-            reqBodyItems,
-            {
-                headers: getHeaders(),
-            },
-        );
+            const response = await itemsDataAPI.getItems(reqBodyItems);
 
-        const responseCurrentItems: IProduct[] = response.data.result as IProduct[];
-        const uniqueItemsMap = new Map<number, IProduct>();
+            const responseCurrentItems: IProduct[] = response.data.result as IProduct[];
+            const uniqueItemsMap = new Map<number, IProduct>();
 
-        responseCurrentItems.forEach((item) => {
-            if (!uniqueItemsMap.has(item.id)) {
-                uniqueItemsMap.set(item.id, item);
+            responseCurrentItems.forEach((item) => {
+                if (!uniqueItemsMap.has(item.id)) {
+                    uniqueItemsMap.set(item.id, item);
+                }
+            });
+
+            const uniqueItems = Array.from(uniqueItemsMap.values());
+
+            setCurrentItems(uniqueItems);
+        } catch (error: any) {
+            if (error.response) {
+                console.log(error.response.data);
+                console.log(error.response.status);
+                console.log(error.response.headers);
+            } else if (error.request) {
+            } else {
+                // Something happened in setting up the request that triggered an Error
+                console.log('Error', error.message);
             }
-        });
-
-        const uniqueItems = Array.from(uniqueItemsMap.values());
-
-        setCurrentItems(uniqueItems);
+        } finally {
+            setIsLoading(false);
+        }
     };
+
+    useEffect(() => {
+        testReq();
+        console.log(currentItems);
+    }, [offset]);
 
     const items_fc = currentItems.map((item: IProduct) => <Item key={item.id} {...item} />);
 
@@ -76,8 +101,20 @@ const Home: React.FC = () => {
             <div className="container">
                 <div className={styles.wrapper}>
                     <h1 className={styles.header}>Магазин</h1>
-                    <button onClick={testReq}>тык</button>
-                    <div className={styles.content_items}>{items_fc}</div>
+                    <div className={styles.content_items}>
+                        {isLoading ? (
+                            <div className={styles.loader_container}>
+                                <Loader />
+                            </div>
+                        ) : items_fc.length > 0 ? (
+                            items_fc
+                        ) : (
+                            <h2 className={styles.header_none}>
+                                К сожалению товара соответсвующего данным фильтрам нет в магазине
+                            </h2>
+                        )}
+                    </div>
+                    {!isLoading && <Pagination prev={prevPage} next={nextPage} />}
                 </div>
             </div>
         </>
