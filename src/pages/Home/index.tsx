@@ -30,9 +30,6 @@ export interface IBodyData {
         ids?: string[];
         field?: string;
         filter?: FilterEnum;
-        // price?: FilterEnum;
-        // brand?: FilterEnum
-        // product?: FilterEnum;
     };
 }
 
@@ -46,14 +43,17 @@ const Home: FC = () => {
 
     const onChangeFilter = (_filter: FilterEnum) => {
         setFilter(_filter);
-        testReq(offset, input, _filter);
+        if (input.length > 0) {
+            testReq(offset, input, _filter);
+            setOffset(0);
+        }
     };
 
     const nextPage = () => {
         if (offset <= 8004) {
             testReq(offset, input, filter);
             setOffset((prev) => prev + 50);
-            setIsLoading(true);
+            window.scrollTo(0, 0);
         }
     };
 
@@ -61,7 +61,7 @@ const Home: FC = () => {
         if (offset !== 0) {
             testReq(offset, input, filter);
             setOffset((prev) => prev - 50);
-            setIsLoading(true);
+            window.scrollTo(0, 0);
         }
     };
 
@@ -74,10 +74,10 @@ const Home: FC = () => {
                 currentInput = Number(input);
             }
             console.log('inside filter');
-            setOffset(0);
+            console.log('offset inside filter:', offset);
             return {
                 action: 'filter',
-                params: { [filter]: currentInput, limit: 50 },
+                params: { [filter]: currentInput, limit: 50, offset },
             };
         } else {
             console.log('inside get_ids');
@@ -90,7 +90,7 @@ const Home: FC = () => {
 
     const testReq = async (offset: number, input: string, filter: FilterEnum) => {
         const reqBody = getReqBody(offset, input, filter);
-
+        setIsLoading(true);
         try {
             const { data } = await itemsDataAPI.getItems(reqBody);
 
@@ -112,7 +112,12 @@ const Home: FC = () => {
 
             const uniqueItems = Array.from(uniqueItemsMap.values());
 
-            setCurrentItems(uniqueItems);
+            if (uniqueItems.length <= 50) {
+                setCurrentItems(uniqueItems);
+            } else {
+                const slicedUniqueItems = uniqueItems.slice(0, 49);
+                setCurrentItems(slicedUniqueItems);
+            }
         } catch (error: any) {
             if (error.response) {
                 console.log(error.response.data);
@@ -132,11 +137,16 @@ const Home: FC = () => {
     const changeInput = (event: React.ChangeEvent<HTMLInputElement>) => {
         debouncedChangeInput(offset, event.target.value, filter);
         setInput(event.target.value);
+        setOffset(0);
     };
 
     useEffect(() => {
         testReq(offset, input, FilterEnum.NULL);
     }, []);
+
+    useEffect(() => {
+        console.log('offset', offset);
+    }, [offset]);
 
     const items_fc = currentItems.map((item: IProduct) => <Item key={item.id} {...item} />);
 
