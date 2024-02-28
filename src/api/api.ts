@@ -15,7 +15,7 @@ const getHeaders = () => {
 };
 
 const axiosTemplate = axios.create({
-    baseURL: 'http://api.valantis.store:40000/',
+    baseURL: '/api/',
     headers: {
         ...getHeaders(),
     },
