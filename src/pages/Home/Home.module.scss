@@ -29,12 +29,6 @@
     text-align: center;
 }
 
-.header_none {
-    color: rgb(230, 53, 91);
-    font-size: 40px;
-    text-align: center;
-}
-
 .loader_container {
     margin: 0 auto;
 }
@@ -44,15 +38,8 @@
     background-color: white;
 
     &_items {
-        margin-top: 15px;
-        background-color: #fff;
-        border-radius: 10px;
+        padding-top: 20px;
         display: flex;
-        justify-content: space-between;
-        align-items: flex-start;
-        gap: 10px;
-        flex-wrap: wrap;
-        height: 100%;
-        width: 100%;
+        justify-content: center;
     }
 }

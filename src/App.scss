@@ -1,5 +1,5 @@
-@import './styles/variables';
-// @import './styles/normalize';
+@import './styles/variables.module.scss';
+@import './styles/normalize.module.scss';
 
 body {
     background-color: $background;
@@ -8,5 +8,4 @@ body {
 .container {
     width: $container-width;
     margin: 0 auto;
-    min-height: calc(100vh - 10px);
 }

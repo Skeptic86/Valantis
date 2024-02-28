@@ -1,29 +1,32 @@
-// добавить лимит и офсет в action: "filter";
-// избавиться от лишних запросов. Сравнивать предыдущий action? если разные, делать запрос и сбрасывать фильтр?
 import { useState, useEffect, FC, useCallback } from 'react';
 import styles from './Home.module.scss';
 
-import Item from '../../components/Item';
-import { itemsDataAPI } from '../../api/api';
+import ProductItem from '../../components/ProductItem';
+import { productItemsDataAPI } from '../../api/api';
 import Loader from '../../components/Loader';
 import Pagination from '../../components/Pagination';
 import FilterInput from '../../components/FilterInput';
 import debounce from 'lodash.debounce';
 import FilterTags, { FilterEnum } from '../../components/FilterTags';
+import { MAX_ELEMENTS_FOR_OFFSET } from '../../utils/consts/numberConsts';
+import ProductItemsList from '../../components/ProductItemsList';
 
-interface IProduct {
+export interface IProduct {
     id: number;
     product: string;
     price: number;
     brand: string;
 }
 
-interface IReqData {
-    result: string[] | IProduct[];
+enum ActionEnum {
+    GET_IDS = 'get_ids',
+    FILTER = 'filter',
+    GET_FIELDS = 'get_fields',
+    GET_ITEMS = 'get_items',
 }
 
 export interface IBodyData {
-    action: 'get_ids' | 'filter' | 'get_fields' | 'get_items' | 'test';
+    action: ActionEnum;
     params: {
         offset?: number;
         limit?: number;
@@ -34,55 +37,52 @@ export interface IBodyData {
 }
 
 const Home: FC = () => {
-    const [currentItems, setCurrentItems] = useState<IProduct[]>([]);
+    const [currentProductItems, setCurrentProductItems] = useState<IProduct[]>([]); //Вынести в отдельный компонент ListProducts
     const [isLoading, setIsLoading] = useState(true);
     const [offset, setOffset] = useState(0);
     const [input, setInput] = useState('');
 
-    const [filter, setFilter] = useState<FilterEnum>(FilterEnum.NULL);
+    const [selectedFilter, setSelectedFilter] = useState<FilterEnum>(FilterEnum.NULL);
 
-    const onChangeFilter = (_filter: FilterEnum) => {
-        setFilter(_filter);
-        if (input.length > 0) {
-            testReq(offset, input, _filter);
-            setOffset(0);
+    const handleChangeFilter = (filter: FilterEnum) => {
+        if (filter !== selectedFilter) {
+            setSelectedFilter(filter);
+            if (input.length > 0) {
+                testReq(offset, input, filter);
+                setOffset(0);
+            }
         }
     };
 
-    const nextPage = () => {
-        if (offset <= 8004) {
-            testReq(offset, input, filter);
+    const moveToNextPage = () => {
+        if (offset <= MAX_ELEMENTS_FOR_OFFSET) {
+            testReq(offset, input, selectedFilter);
             setOffset((prev) => prev + 50);
             window.scrollTo(0, 0);
         }
     };
 
-    const prevPage = () => {
+    const moveToPrevPage = () => {
         if (offset !== 0) {
-            testReq(offset, input, filter);
+            testReq(offset, input, selectedFilter);
             setOffset((prev) => prev - 50);
             window.scrollTo(0, 0);
         }
     };
 
     const getReqBody = (offset: number, input: string, filter: FilterEnum): IBodyData => {
-        console.log('reqBodyFilter:  ', filter);
-        console.log('reqBody input.length:  ', input.length);
         if (filter !== FilterEnum.NULL && input.length > 0) {
             let currentInput: string | number = input;
             if (filter === FilterEnum.PRICE) {
-                currentInput = Number(input);
+                currentInput = parseInt(input, 10);
             }
-            console.log('inside filter');
-            console.log('offset inside filter:', offset);
             return {
-                action: 'filter',
+                action: ActionEnum.FILTER,
                 params: { [filter]: currentInput, limit: 50, offset },
             };
         } else {
-            console.log('inside get_ids');
             return {
-                action: 'get_ids',
+                action: ActionEnum.GET_IDS,
                 params: { offset, limit: 50 },
             };
         }
@@ -92,16 +92,16 @@ const Home: FC = () => {
         const reqBody = getReqBody(offset, input, filter);
         setIsLoading(true);
         try {
-            const { data } = await itemsDataAPI.getItems(reqBody);
+            const { data } = await productItemsDataAPI.getProductItems(reqBody);
 
             const reqBodyItems: IBodyData = {
-                action: 'get_items',
+                action: ActionEnum.GET_ITEMS,
                 params: { ids: data.result },
             };
 
-            const response = await itemsDataAPI.getItems(reqBodyItems);
+            const response = await productItemsDataAPI.getProductItems(reqBodyItems);
 
-            const responseCurrentItems: IProduct[] = response.data.result as IProduct[];
+            const responseCurrentItems: IProduct[] = response.data.result;
             const uniqueItemsMap = new Map<number, IProduct>();
 
             responseCurrentItems.forEach((item) => {
@@ -110,23 +110,19 @@ const Home: FC = () => {
                 }
             });
 
-            const uniqueItems = Array.from(uniqueItemsMap.values());
+            const uniqueProductItems = Array.from(uniqueItemsMap.values());
 
-            if (uniqueItems.length <= 50) {
-                setCurrentItems(uniqueItems);
+            //Проверка на случай если action=filter и ограничить число элементов на странице, ибо в апи не предусмотрено offset и limit для filter.
+            //Есть вариант создавать еще state для пришедших данных для фильтра и переделать пагинацию под него, но тогда нет смысла использовать offset и limit для get_ids
+
+            if (uniqueProductItems.length <= 50) {
+                setCurrentProductItems(uniqueProductItems);
             } else {
-                const slicedUniqueItems = uniqueItems.slice(0, 49);
-                setCurrentItems(slicedUniqueItems);
+                const slicedUniqueItems = uniqueProductItems.slice(0, 49);
+                setCurrentProductItems(slicedUniqueItems);
             }
         } catch (error: any) {
-            if (error.response) {
-                console.log(error.response.data);
-                console.log(error.response.status);
-                console.log(error.response.headers);
-            } else if (error.request) {
-            } else {
-                console.log('Error', error.message);
-            }
+            console.error(error);
         } finally {
             setIsLoading(false);
         }
@@ -135,7 +131,7 @@ const Home: FC = () => {
     const debouncedChangeInput = useCallback(debounce(testReq, 1200), []);
 
     const changeInput = (event: React.ChangeEvent<HTMLInputElement>) => {
-        debouncedChangeInput(offset, event.target.value, filter);
+        debouncedChangeInput(offset, event.target.value, selectedFilter);
         setInput(event.target.value);
         setOffset(0);
     };
@@ -144,42 +140,34 @@ const Home: FC = () => {
         testReq(offset, input, FilterEnum.NULL);
     }, []);
 
-    useEffect(() => {
-        console.log('offset', offset);
-    }, [offset]);
-
-    const items_fc = currentItems.map((item: IProduct) => <Item key={item.id} {...item} />);
-
     return (
-        <>
-            <div className="container">
-                <div className={styles.wrapper}>
-                    <h1 className={styles.header}>Магазин</h1>
-                    <div className={styles.filter_wrapper}>
-                        <FilterInput filter={filter} value={input} onChangeInput={changeInput} />
-                        <FilterTags activeTag={filter} onChangeTag={onChangeFilter} />
-                    </div>
-                    <div className={styles.content_items}>
-                        {isLoading ? (
-                            <div className={styles.loader_container}>
-                                <Loader />
-                            </div>
-                        ) : items_fc.length > 0 ? (
-                            items_fc
-                        ) : (
-                            <h2 className={styles.header_none}>
-                                К сожалению товара соответсвующего данным фильтрам нет в магазине
-                            </h2>
-                        )}
-                    </div>
-                    <div className={styles.pagination}>
-                        {!isLoading && (
-                            <Pagination prev={prevPage} next={nextPage} offset={offset} />
-                        )}
-                    </div>
+        <div className="container">
+            <div className={styles.wrapper}>
+                <h1 className={styles.header}>Магазин Valantis</h1>
+                <div className={styles.filter_wrapper}>
+                    <FilterInput
+                        filter={selectedFilter}
+                        value={input}
+                        onChangeInput={changeInput}
+                    />
+                    <FilterTags activeTag={selectedFilter} onChangeTag={handleChangeFilter} />
+                </div>
+                <div className={styles.content_items}>
+                    {isLoading ? (
+                        <div className={styles.loader_container}>
+                            <Loader />
+                        </div>
+                    ) : (
+                        <ProductItemsList currentProductItems={currentProductItems} />
+                    )}
+                </div>
+                <div className={styles.pagination}>
+                    {!isLoading && (
+                        <Pagination prev={moveToPrevPage} next={moveToNextPage} offset={offset} />
+                    )}
                 </div>
             </div>
-        </>
+        </div>
     );
 };
 

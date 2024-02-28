@@ -17,16 +17,15 @@ const filterPlaceholders = {
 
 const FilterInput: React.FC<IFilterInputProps> = ({ value, filter, onChangeInput }) => {
     const isFilterNull = filter === FilterEnum.NULL;
+    const placeHolder = isFilterNull
+        ? 'Выберите фильтр для поиска'
+        : `Введите ${filterPlaceholders[filter]} продукта`;
 
     return (
         <input
             disabled={isFilterNull}
             type="text"
-            placeholder={
-                isFilterNull
-                    ? 'Выберите фильтр для поиска'
-                    : `Введите ${filterPlaceholders[filter]} продукта`
-            }
+            placeholder={placeHolder}
             value={value}
             onChange={onChangeInput}
             className={styles.input}

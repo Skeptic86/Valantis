@@ -1,6 +1,7 @@
 import { md5 } from 'js-md5';
 import axios, { AxiosError } from 'axios';
 import { IBodyData } from '../pages/Home';
+
 const getHeaders = () => {
     const date = new Date();
     date.setHours(date.getHours() - 2);
@@ -34,14 +35,14 @@ axiosTemplate.interceptors.response.use(
                 //@ts-ignore
                 return axiosTemplate.request(originalRequest);
             } catch (error) {
-                console.log(error);
+                console.error(error);
             }
         }
     },
 );
 
-export const itemsDataAPI = {
-    getItems: (body: IBodyData) => {
+export const productItemsDataAPI = {
+    getProductItems: (body: IBodyData) => {
         return axiosTemplate.post('/', body);
     },
 };
